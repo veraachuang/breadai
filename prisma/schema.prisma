@@ -1,0 +1,123 @@
+// This is your Prisma schema file
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String
+  accounts      Account[]
+  sessions      Session[]
+  plaidItems    PlaidItem[]
+  transactions  Transaction[]
+  budgets       Budget[]
+  goals         Goal[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  id                String   @id @default(cuid())
+  userId           String
+  type             String
+  provider         String
+  providerAccountId String
+  refresh_token    String?  @db.Text
+  access_token     String?  @db.Text
+  expires_at       Int?
+  token_type       String?
+  scope            String?
+  id_token         String?  @db.Text
+  session_state    String?
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PlaidItem {
+  id            String    @id @default(cuid())
+  userId        String
+  accessToken   String
+  itemId        String    @unique
+  institutionId String
+  accounts      PlaidAccount[]
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model PlaidAccount {
+  id            String    @id @default(cuid())
+  plaidItemId   String
+  accountId     String    @unique
+  name          String
+  type          String
+  subtype       String?
+  balance       Float
+  plaidItem     PlaidItem @relation(fields: [plaidItemId], references: [id], onDelete: Cascade)
+  transactions  Transaction[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Transaction {
+  id            String    @id @default(cuid())
+  userId        String
+  accountId     String
+  plaidId       String    @unique
+  amount        Float
+  date          DateTime
+  name          String
+  merchantName  String?
+  category      String[]
+  aiCategory    String?
+  pending       Boolean
+  account       PlaidAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Budget {
+  id            String    @id @default(cuid())
+  userId        String
+  category      String
+  amount        Float
+  spent         Float     @default(0)
+  period        String    // monthly, weekly, yearly
+  aiSuggested   Float?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Goal {
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  targetAmount  Float
+  currentAmount Float     @default(0)
+  deadline      DateTime?
+  category      String
+  status        String    // active, completed, failed
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+} 
