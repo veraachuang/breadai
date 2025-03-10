@@ -7,23 +7,20 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="dashboard-layout">
+    <div className="min-h-screen">
+      {/* Header spacer */}
+      <div className="h-14" />
+      
       {/* Sidebar */}
-      <AppSidebar />
+      <div className="fixed left-0 top-14 bottom-0 w-64 bg-white border-r border-[#e6dfd5]">
+        <AppSidebar />
+      </div>
 
       {/* Main Content */}
-      <div className="dashboard-content">
-        <header className="dashboard-header">
-          <div className="flex items-center">
-            <h1 className="text-lg font-medium text-[#3a3027]">BreadAI Finance</h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="w-8 h-8 rounded-full bg-[#e8e1d9] flex items-center justify-center text-[#9c6644] font-medium">
-              <span className="text-sm">JD</span>
-            </div>
-          </div>
-        </header>
-        <main className="dashboard-main">{children}</main>
+      <div className="ml-64">
+        <div className="max-w-7xl mx-auto px-6 pt-4 pb-8">
+          <main>{children}</main>
+        </div>
       </div>
     </div>
   )

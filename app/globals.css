@@ -2,6 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .dashboard-content {
+    @apply pt-14 px-4 py-8 max-w-7xl mx-auto;
+  }
+
+  .dashboard-card {
+    @apply bg-white rounded-lg shadow-sm p-6;
+  }
+
+  .stat-card {
+    @apply flex flex-col;
+  }
+
+  .stat-title {
+    @apply text-sm text-[#3a3027] opacity-70;
+  }
+
+  .stat-value {
+    @apply text-2xl font-semibold text-[#3a3027];
+  }
+
+  .stat-change {
+    @apply flex items-center text-xs mt-1;
+  }
+
+  .stat-change.positive {
+    @apply text-green-600;
+  }
+
+  .stat-change.negative {
+    @apply text-red-600;
+  }
+
+  .chart-container {
+    @apply w-full h-64;
+  }
+
+  .budget-progress {
+    @apply w-full h-2 bg-gray-100 rounded-full overflow-hidden;
+  }
+
+  .budget-progress-bar {
+    @apply h-full rounded-full transition-all duration-300;
+  }
+
+  .budget-progress-bar.good {
+    @apply bg-green-500;
+  }
+
+  .budget-progress-bar.warning {
+    @apply bg-amber-500;
+  }
+
+  .budget-progress-bar.danger {
+    @apply bg-red-500;
+  }
+
+  .recommendation-card {
+    @apply bg-white rounded-lg shadow-sm p-6 mb-4 border border-[#e6dfd5];
+  }
+
+  .recommendation-title {
+    @apply text-lg font-medium text-[#3a3027] mb-2;
+  }
+
+  .recommendation-content {
+    @apply text-[#3a3027] opacity-80 mb-4;
+  }
+
+  .recommendation-action {
+    @apply text-sm text-[#9c6644] font-medium flex items-center hover:underline;
+  }
+}
+
 :root {
   /* Professional bread-themed color palette */
   --background: #f8f5f0;

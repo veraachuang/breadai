@@ -6,7 +6,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Home, CreditCard, PieChart, Target, Settings, BarChart3, Lightbulb, Menu, X } from "lucide-react"
 import { useState } from "react"
-import { BreadAILogo } from "@/components/logo"
 
 interface SidebarLink {
   title: string
@@ -74,10 +73,6 @@ export function AppSidebar() {
       </button>
 
       <aside className={`dashboard-sidebar ${isMobileMenuOpen ? "open" : ""}`}>
-        <div className="p-5 border-b border-[#e6dfd5]">
-          <BreadAILogo />
-        </div>
-
         <nav className="p-4">
           <div className="sidebar-section">
             <div className="sidebar-heading">Main</div>
@@ -115,11 +110,6 @@ export function AppSidebar() {
             </ul>
           </div>
         </nav>
-
-        <div className="mt-auto p-4 border-t border-[#e6dfd5]">
-          <div className="text-xs text-[#3a3027] opacity-60 mb-2">Current Balance</div>
-          <div className="text-lg font-semibold text-[#3a3027]">$1,245.67</div>
-        </div>
       </aside>
     </>
   )

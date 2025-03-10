@@ -2,12 +2,22 @@
 
 import { useState } from "react"
 import { TrendingUp, TrendingDown, DollarSign, Coffee, ShoppingBag, Car, Lightbulb, ChevronRight } from "lucide-react"
+import { TransactionList } from '@/components/TransactionList'
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("monthly")
 
   return (
-    <div>
+    <div className="container mx-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-600">Track your spending and manage your finances.</p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-8">
+        <TransactionList />
+      </div>
+
       <h1 className="text-xl font-semibold text-[#3a3027] mb-6">Financial Overview</h1>
 
       {/* Financial Summary */}

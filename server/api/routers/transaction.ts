@@ -11,29 +11,39 @@ export const transactionRouter = createTRPCRouter({
       category: z.string().optional(),
     }))
     .query(async ({ ctx, input }) => {
-      const where = {
-        userId: ctx.session.user.id,
-        ...(input.startDate && input.endDate ? {
-          date: {
-            gte: new Date(input.startDate),
-            lte: new Date(input.endDate),
-          },
-        } : {}),
-        ...(input.category ? {
-          OR: [
-            { category: { has: input.category } },
-            { aiCategory: input.category },
-          ],
-        } : {}),
-      };
+      try {
+        const where = {
+          userId: ctx.session.user.id,
+          ...(input.startDate && input.endDate ? {
+            date: {
+              gte: new Date(input.startDate),
+              lte: new Date(input.endDate),
+            },
+          } : {}),
+          ...(input.category ? {
+            category: {
+              has: input.category
+            },
+          } : {}),
+        };
 
-      return ctx.prisma.transaction.findMany({
-        where,
-        orderBy: { date: 'desc' },
-        include: {
-          account: true,
-        },
-      });
+        const transactions = await ctx.prisma.transaction.findMany({
+          where,
+          orderBy: { date: 'desc' },
+          include: {
+            plaidAccount: true,
+          },
+        });
+
+        return transactions;
+      } catch (error) {
+        console.error("Error fetching transactions:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch transactions",
+          cause: error
+        });
+      }
     }),
 
   categorizeTransactions: protectedProcedure
