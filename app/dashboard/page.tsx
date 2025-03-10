@@ -106,11 +106,11 @@ export default function DashboardPage() {
         </div>
         <button
           onClick={handleRefresh}
-          disabled={populateDummyData.isLoading}
+          disabled={populateDummyData.isPending}
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#9c6644] bg-[#f5efe7] rounded-md hover:bg-[#e8e1d9] transition-colors disabled:opacity-50"
         >
-          <RefreshCw size={16} className={`${populateDummyData.isLoading ? 'animate-spin' : ''}`} />
-          {populateDummyData.isLoading ? 'Refreshing...' : 'Refresh Data'}
+          <RefreshCw size={16} className={`${populateDummyData.isPending ? 'animate-spin' : ''}`} />
+          {populateDummyData.isPending ? 'Refreshing...' : 'Refresh Data'}
         </button>
       </div>
 

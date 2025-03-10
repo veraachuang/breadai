@@ -32,7 +32,7 @@ export default function TransactionList() {
     return date.toISOString().split('T')[0];
   });
 
-  const { data: transactions, isLoading, error, refetch } = api.transaction.getAll.useQuery(
+  const { data: transactions, isPending, error, refetch } = api.transaction.getAll.useQuery(
     {
       startDate,
       endDate,
@@ -48,7 +48,7 @@ export default function TransactionList() {
     }
   }, [transactions]);
 
-  if (isLoading) {
+  if (isPending) {
     return <LoadingSpinner />;
   }
 
