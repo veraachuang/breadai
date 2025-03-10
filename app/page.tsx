@@ -8,13 +8,16 @@ import Link from "next/link"
 import { X } from "lucide-react"
 import { BreadAILogo } from "@/components/logo"
 import { signIn } from "next-auth/react"
+import { useSession } from "next-auth/react"
 
 export default function LoginPage() {
+  const { data: session, status } = useSession();
   const router = useRouter()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

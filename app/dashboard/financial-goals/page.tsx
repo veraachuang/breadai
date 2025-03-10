@@ -12,6 +12,7 @@ export default function FinancialGoalsPage() {
           <p className="text-[#3a3027] opacity-60">Financial goals data will appear here</p>
         </div>
       </div>
+      <div className="text-center py-8">We&apos;re still working on the financial goals feature!</div>
     </div>
   )
 }

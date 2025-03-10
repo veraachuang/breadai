@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api } from '@/app/_trpc/react';
 import { format } from 'date-fns';
-import type { Transaction } from '@prisma/client';
+import { api } from '@/app/_trpc/react';
+import { useSession } from 'next-auth/react';
+import { LoadingSpinner } from './loading';
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
   'Income': { bg: 'bg-green-100', text: 'text-green-800' },
@@ -15,41 +16,40 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
   'Entertainment': { bg: 'bg-pink-100', text: 'text-pink-800' },
 };
 
-export function TransactionList() {
+export default function TransactionList() {
+  const { data: session } = useSession();
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
+
   const [startDate, setStartDate] = useState(() => {
     const date = new Date();
-    date.setDate(date.getDate() - 30); // Set to 30 days ago
-    return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    date.setDate(date.getDate() - 30);
+    return date.toISOString().split('T')[0];
   });
-  
+
   const [endDate, setEndDate] = useState(() => {
     const date = new Date();
-    return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    return date.toISOString().split('T')[0];
   });
 
-  const [displayCount, setDisplayCount] = useState(5);
+  const { data: transactions, isLoading, error, refetch } = api.transaction.getAll.useQuery(
+    {
+      startDate,
+      endDate,
+    },
+    {
+      enabled: !!session?.user,
+    }
+  );
 
-  const { data: transactions, isLoading, error, refetch } = api.transaction.getAll.useQuery({
-    startDate,
-    endDate,
-  }, {
-    refetchOnWindowFocus: false
-  });
-
-  // Log transactions when they change
   useEffect(() => {
     if (transactions) {
-      console.log("Transactions received:", {
-        count: transactions.length,
-        dateRange: { startDate, endDate },
-        firstTransaction: transactions[0],
-        lastTransaction: transactions[transactions.length - 1]
-      });
+      console.log('Current transactions:', transactions);
     }
-  }, [transactions, startDate, endDate]);
+  }, [transactions]);
 
   const handleLoadMore = () => {
-    setDisplayCount(prev => prev + 5);
+    setCurrentPage(prev => prev + 1);
   };
 
   const getCategoryStyle = (category: string[]) => {
@@ -57,20 +57,8 @@ export function TransactionList() {
     return CATEGORY_COLORS[mainCategory] || { bg: 'bg-gray-100', text: 'text-gray-800' };
   };
 
-  // Force a refetch when the component mounts
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
-
   if (isLoading) {
-    return (
-      <div className="text-center py-4">
-        <div className="animate-pulse">Loading transactions...</div>
-        <div className="text-sm text-gray-500 mt-2">
-          Date range: {format(new Date(startDate), 'MMM d, yyyy')} - {format(new Date(endDate), 'MMM d, yyyy')}
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (error) {
@@ -84,7 +72,7 @@ export function TransactionList() {
     );
   }
 
-  if (!transactions?.length) {
+  if (!transactions || transactions.length === 0) {
     return (
       <div className="text-center py-4">
         <div>No transactions found</div>
@@ -101,7 +89,10 @@ export function TransactionList() {
     );
   }
 
-  const displayedTransactions = transactions.slice(0, displayCount);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const displayedTransactions = transactions.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(transactions.length / pageSize);
 
   return (
     <div className="space-y-4">
@@ -109,51 +100,57 @@ export function TransactionList() {
         <div className="text-sm text-gray-500">
           Showing {displayedTransactions.length} of {transactions.length} transactions
         </div>
-        
       </div>
       
       <div className="max-h-[600px] overflow-y-auto space-y-4 pr-2">
-        {displayedTransactions.map((transaction) => (
+        {displayedTransactions.map((transaction, index) => (
           <div
-            key={transaction.id}
-            className="bg-white rounded-lg shadow p-4 flex justify-between items-center"
+            key={index}
+            className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
           >
-            <div>
-              <h3 className="font-medium">{transaction.name}</h3>
-              <p className="text-sm text-gray-500">
-                {format(new Date(transaction.date), 'MMM d, yyyy')}
-              </p>
-              {transaction.merchantName && (
-                <p className="text-sm text-gray-500">{transaction.merchantName}</p>
-              )}
-              <div className="flex gap-2 mt-1">
-                {transaction.category.map((cat, index) => {
-                  const style = getCategoryStyle(transaction.category);
-                  return (
-                    <span
-                      key={index}
-                      className={`text-xs ${style.bg} ${style.text} rounded-full px-2 py-0.5`}
-                    >
-                      {cat}
-                    </span>
-                  );
-                })}
+            <div className="flex items-center space-x-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-full bg-[#f0fdf4] flex items-center justify-center">
+                  <span className="text-[#4d7c0f] text-lg">
+                    {transaction.category[0]?.charAt(0) || '?'}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <div className="font-medium text-gray-900">{transaction.name}</div>
+                <div className="text-sm text-gray-500">
+                  {format(new Date(transaction.date), 'MMM d, yyyy')}
+                </div>
               </div>
             </div>
-            <div className={`text-lg ${transaction.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
-              ${Math.abs(transaction.amount).toFixed(2)}
+            <div className="text-right">
+              <div className={`font-medium ${transaction.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                ${Math.abs(transaction.amount).toFixed(2)}
+              </div>
+              <div className="text-sm text-gray-500">{transaction.category[0]}</div>
             </div>
           </div>
         ))}
       </div>
 
-      {transactions.length > displayCount && (
-        <div className="text-center mt-4">
+      {totalPages > 1 && (
+        <div className="flex justify-center space-x-2 mt-4">
           <button
-            onClick={handleLoadMore}
-            className="px-4 py-2 bg-[#9c6644] text-white rounded-xl hover:bg-[#8b5a3b]"
+            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 bg-gray-100 rounded-md disabled:opacity-50"
           >
-            Load More
+            Previous
+          </button>
+          <span className="px-3 py-1">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 bg-gray-100 rounded-md disabled:opacity-50"
+          >
+            Next
           </button>
         </div>
       )}

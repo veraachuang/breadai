@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Shield, Lock } from 'lucide-react';
 import { api } from '../app/_trpc/react';
 import { useSession } from 'next-auth/react';
+import { PlaidLinkOnSuccess, PlaidLinkOnEvent, PlaidLinkOnExit } from 'react-plaid-link';
 
 declare global {
   interface Window {
@@ -12,7 +13,14 @@ declare global {
   }
 }
 
-export function PlaidLink() {
+interface PlaidLinkProps {
+  linkToken: string;
+  onSuccess: PlaidLinkOnSuccess;
+  onEvent?: PlaidLinkOnEvent;
+  onExit?: PlaidLinkOnExit;
+}
+
+export default function PlaidLink({ linkToken, onSuccess, onEvent, onExit }: PlaidLinkProps) {
   const [isPlaidScriptLoaded, setIsPlaidScriptLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,23 +67,23 @@ export function PlaidLink() {
       setError(null);
       const { linkToken } = await createLinkToken.mutateAsync();
 
-      const handler = window.Plaid.create({
+      const { open, ready } = usePlaidLink({
         token: linkToken,
-        onSuccess: async (public_token: string) => {
-          await exchangePublicToken.mutateAsync({ publicToken: public_token });
+        onSuccess: (public_token, metadata) => {
+          console.log('Link success:', metadata);
+          onSuccess(public_token, metadata);
         },
-        onExit: () => {
-          setIsLoading(false);
+        onEvent: (eventName, metadata) => {
+          console.log('Link event:', eventName, metadata);
+          if (onEvent) onEvent(eventName, metadata);
         },
-        onLoad: () => {
-          setIsLoading(false);
-        },
-        onEvent: (eventName: string) => {
-          console.log(eventName);
+        onExit: (error, metadata) => {
+          console.log('Link exit:', error, metadata);
+          if (onExit) onExit(error, metadata);
         },
       });
 
-      handler.open();
+      open();
     } catch (error) {
       setError('Failed to initialize Plaid Link');
       setIsLoading(false);

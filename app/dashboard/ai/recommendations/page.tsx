@@ -12,7 +12,7 @@ export default function RecommendationsPage() {
           <div className="recommendation-card">
             <h3 className="recommendation-title">Optimize Your Coffee Budget</h3>
             <p className="recommendation-content">
-              You're spending $15/week at premium coffee shops. Making coffee at home 3 days a week could save you $78
+              You&apos;re spending $15/week at premium coffee shops. Making coffee at home 3 days a week could save you $78
               this month.
             </p>
             <button className="recommendation-action">Apply this suggestion</button>
@@ -21,7 +21,7 @@ export default function RecommendationsPage() {
           <div className="recommendation-card">
             <h3 className="recommendation-title">Subscription Overlap Detected</h3>
             <p className="recommendation-content">
-              You're paying for both Netflix ($14.99) and Hulu ($11.99) with similar content. Consider consolidating to
+              You&apos;re paying for both Netflix ($14.99) and Hulu ($11.99) with similar content. Consider consolidating to
               save $11.99 monthly.
             </p>
           </div>
