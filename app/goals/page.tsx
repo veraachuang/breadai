@@ -43,7 +43,7 @@ export default function GoalsPage() {
         </div>
 
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">What's your primary financial goal?</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">What&apos;s your primary financial goal?</h2>
           <p className="text-gray-600">
             Select the goal that matters most to you. Our AI will customize your experience based on your selection.
           </p>

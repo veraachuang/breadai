@@ -71,10 +71,10 @@ export default function PlaidLink({ onSuccess, onEvent, onExit }: PlaidLinkProps
         console.log('Link event:', eventName, metadata);
         if (onEvent) onEvent(eventName, metadata);
       },
-      onExit: (error: PlaidLinkError | null, metadata: PlaidLinkOnExitMetadata) => {
-        console.log('Link exit:', error, metadata);
+      onExit: (_error: PlaidLinkError | null, metadata: PlaidLinkOnExitMetadata) => {
+        console.log('Link exit:', _error, metadata);
         setIsLoading(false);
-        if (onExit) onExit(error, metadata);
+        if (onExit) onExit(_error, metadata);
       },
     }),
     [token, onSuccess, onEvent, onExit, exchangePublicToken]

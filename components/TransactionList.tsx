@@ -6,15 +6,15 @@ import { api } from '@/app/_trpc/react';
 import { useSession } from 'next-auth/react';
 import { LoadingSpinner } from './loading';
 
-const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
-  'Income': { bg: 'bg-green-100', text: 'text-green-800' },
-  'Food and Drink': { bg: 'bg-amber-100', text: 'text-amber-800' },
-  'Shopping': { bg: 'bg-blue-100', text: 'text-blue-800' },
-  'Transportation': { bg: 'bg-red-100', text: 'text-red-800' },
-  'Housing': { bg: 'bg-purple-100', text: 'text-purple-800' },
-  'Utilities': { bg: 'bg-indigo-100', text: 'text-indigo-800' },
-  'Entertainment': { bg: 'bg-pink-100', text: 'text-pink-800' },
-};
+// const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
+//   'Income': { bg: 'bg-green-100', text: 'text-green-800' },
+//   'Food and Drink': { bg: 'bg-amber-100', text: 'text-amber-800' },
+//   'Shopping': { bg: 'bg-blue-100', text: 'text-blue-800' },
+//   'Transportation': { bg: 'bg-red-100', text: 'text-red-800' },
+//   'Housing': { bg: 'bg-purple-100', text: 'text-purple-800' },
+//   'Utilities': { bg: 'bg-indigo-100', text: 'text-indigo-800' },
+//   'Entertainment': { bg: 'bg-pink-100', text: 'text-pink-800' },
+// };
 
 export default function TransactionList() {
   const { data: session } = useSession();
