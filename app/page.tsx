@@ -11,45 +11,43 @@ import { signIn } from "next-auth/react"
 import { useSession } from "next-auth/react"
 
 export default function LoginPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter()
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [isRedirecting, setIsRedirecting] = useState(false)
+  const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     
     // Form validation
     if (!username.trim() || !password.trim()) {
-      setError("Please fill in all fields")
-      return
+      setError("Please fill in all fields");
+      return;
     }
 
     try {
-      setIsLoading(true)
-      setError("")
+      setIsLoading(true);
+      setError("");
       
       const result = await signIn("credentials", {
         username: username.trim(),
         password: password.trim(),
         redirect: false,
-      })
+      });
 
       if (result?.error) {
-        setError("Invalid username or password")
-        return
+        setError("Invalid username or password");
+        return;
       }
 
-      router.push("/dashboard")
-    } catch (error) {
-      setError("Something went wrong. Please try again.")
+      router.push("/dashboard");
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-[#f8f5f0]">

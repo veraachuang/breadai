@@ -21,13 +21,13 @@ export default function TransactionList() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 5;
 
-  const [startDate, setStartDate] = useState(() => {
+  const [startDate] = useState(() => {
     const date = new Date();
     date.setDate(date.getDate() - 30);
     return date.toISOString().split('T')[0];
   });
 
-  const [endDate, setEndDate] = useState(() => {
+  const [endDate] = useState(() => {
     const date = new Date();
     return date.toISOString().split('T')[0];
   });

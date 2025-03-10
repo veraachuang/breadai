@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { PlaidLink } from "@/components/PlaidLink"
+import PlaidLink from '@/components/PlaidLink'
 
 export default function LinkBankPage() {
   const router = useRouter()

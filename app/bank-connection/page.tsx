@@ -1,7 +1,7 @@
 "use client"
 
 import { X } from "lucide-react"
-import { PlaidLink } from "@/components/PlaidLink"
+import PlaidLink from '@/components/PlaidLink'
 
 export default function BankConnectionPage() {
   return (

@@ -3,7 +3,7 @@
 import React from 'react';
 import { useState, useMemo } from "react"
 import { TrendingUp, TrendingDown, DollarSign, Coffee, ShoppingBag, Car, Lightbulb, ChevronRight, RefreshCw } from "lucide-react"
-import { TransactionList } from '@/components/TransactionList'
+import TransactionList from '@/components/TransactionList'
 import { api } from '@/app/_trpc/react'
 import { startOfWeek, endOfWeek, startOfDay, endOfDay, subDays } from 'date-fns'
 

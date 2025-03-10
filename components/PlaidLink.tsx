@@ -5,22 +5,23 @@ import { useRouter } from 'next/navigation';
 import { Shield, Lock } from 'lucide-react';
 import { api } from '../app/_trpc/react';
 import { useSession } from 'next-auth/react';
-import { PlaidLinkOnSuccess, PlaidLinkOnEvent, PlaidLinkOnExit } from 'react-plaid-link';
+import { usePlaidLink, PlaidLinkOnSuccess, PlaidLinkOnEvent, PlaidLinkOnExit } from 'react-plaid-link';
 
 declare global {
   interface Window {
-    Plaid: any;
+    Plaid: {
+      create: (config: any) => void;
+    };
   }
 }
 
 interface PlaidLinkProps {
-  linkToken: string;
-  onSuccess: PlaidLinkOnSuccess;
+  onSuccess?: PlaidLinkOnSuccess;
   onEvent?: PlaidLinkOnEvent;
   onExit?: PlaidLinkOnExit;
 }
 
-export default function PlaidLink({ linkToken, onSuccess, onEvent, onExit }: PlaidLinkProps) {
+export default function PlaidLink({ onSuccess, onEvent, onExit }: PlaidLinkProps) {
   const [isPlaidScriptLoaded, setIsPlaidScriptLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +45,29 @@ export default function PlaidLink({ linkToken, onSuccess, onEvent, onExit }: Pla
     }
   });
 
+  const config = {
+    token: undefined as string | undefined,
+    onSuccess: async (public_token: string, metadata: any) => {
+      console.log('Link success:', metadata);
+      if (onSuccess) {
+        onSuccess(public_token, metadata);
+      } else {
+        await exchangePublicToken.mutateAsync({ publicToken: public_token });
+      }
+    },
+    onEvent: (eventName: string, metadata: any) => {
+      console.log('Link event:', eventName, metadata);
+      if (onEvent) onEvent(eventName, metadata);
+    },
+    onExit: (err: any, metadata: any) => {
+      console.log('Link exit:', err, metadata);
+      setIsLoading(false);
+      if (onExit) onExit(err, metadata);
+    },
+  };
+
+  const { open } = usePlaidLink(config);
+
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://cdn.plaid.com/link/v2/stable/link-initialize.js';
@@ -66,25 +90,9 @@ export default function PlaidLink({ linkToken, onSuccess, onEvent, onExit }: Pla
       setIsLoading(true);
       setError(null);
       const { linkToken } = await createLinkToken.mutateAsync();
-
-      const { open, ready } = usePlaidLink({
-        token: linkToken,
-        onSuccess: (public_token, metadata) => {
-          console.log('Link success:', metadata);
-          onSuccess(public_token, metadata);
-        },
-        onEvent: (eventName, metadata) => {
-          console.log('Link event:', eventName, metadata);
-          if (onEvent) onEvent(eventName, metadata);
-        },
-        onExit: (error, metadata) => {
-          console.log('Link exit:', error, metadata);
-          if (onExit) onExit(error, metadata);
-        },
-      });
-
+      config.token = linkToken;
       open();
-    } catch (error) {
+    } catch (err) {
       setError('Failed to initialize Plaid Link');
       setIsLoading(false);
     }
