@@ -1,20 +1,120 @@
 "use client"
 
-import { useState } from "react"
-import { TrendingUp, TrendingDown, DollarSign, Coffee, ShoppingBag, Car, Lightbulb, ChevronRight } from "lucide-react"
+import React from 'react';
+import { useState, useMemo } from "react"
+import { TrendingUp, TrendingDown, DollarSign, Coffee, ShoppingBag, Car, Lightbulb, ChevronRight, RefreshCw } from "lucide-react"
 import { TransactionList } from '@/components/TransactionList'
+import { api } from '@/app/_trpc/react'
+import { startOfWeek, endOfWeek, startOfDay, endOfDay, subDays } from 'date-fns'
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("monthly")
+  const utils = api.useContext();
+
+  // Get date ranges based on active tab
+  const dateRange = useMemo(() => {
+    const now = new Date()
+    switch (activeTab) {
+      case 'weekly':
+        return {
+          startDate: startOfWeek(now, { weekStartsOn: 1 }).toISOString(),
+          endDate: endOfWeek(now, { weekStartsOn: 1 }).toISOString()
+        }
+      case 'daily':
+        return {
+          startDate: startOfDay(now).toISOString(),
+          endDate: endOfDay(now).toISOString()
+        }
+      case 'monthly':
+      default:
+        const thirtyDaysAgo = subDays(now, 30)
+        return {
+          startDate: startOfDay(thirtyDaysAgo).toISOString(),
+          endDate: endOfDay(now).toISOString()
+        }
+    }
+  }, [activeTab])
+
+  const { data: spendingData } = api.transaction.getSpendingByCategory.useQuery(dateRange);
+  const populateDummyData = api.transaction.populateDummyData.useMutation({
+    onSuccess: () => {
+      // Invalidate all queries to refresh the data
+      utils.transaction.invalidate();
+    },
+  });
+
+  const handleRefresh = async () => {
+    try {
+      await populateDummyData.mutateAsync();
+    } catch (error) {
+      console.error('Failed to refresh data:', error);
+    }
+  };
+
+  // Calculate total spending and income
+  const { totalSpending, totalIncome } = useMemo(() => {
+    if (!spendingData) return { totalSpending: 0, totalIncome: 0 };
+    
+    const result = {
+      totalSpending: 0,
+      totalIncome: 0
+    };
+
+    spendingData.forEach(({ category, amount }) => {
+      if (category === 'Income') {
+        result.totalIncome += Math.abs(amount); // Income is stored as positive
+      } else {
+        result.totalSpending += Math.abs(amount); // Expenses are stored as negative
+      }
+    });
+
+    return result;
+  }, [spendingData]);
+
+  // Calculate spending by category for the chart
+  const spendingByCategory = useMemo(() => {
+    if (!spendingData) return [];
+    return spendingData
+      .filter(({ category }) => category !== 'Income')
+      .map(({ category, amount }) => ({
+        category,
+        amount: Math.abs(amount),
+        percentage: ((Math.abs(amount) / totalSpending) * 100).toFixed(1)
+      }))
+      .sort((a, b) => b.amount - a.amount);
+  }, [spendingData, totalSpending]);
+
+  // Get time period label
+  const timePeriodLabel = useMemo(() => {
+    switch (activeTab) {
+      case 'weekly':
+        return 'This Week';
+      case 'daily':
+        return 'Today';
+      case 'monthly':
+      default:
+        return 'Last 30 Days';
+    }
+  }, [activeTab]);
 
   return (
     <div className="container mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Track your spending and manage your finances.</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600">Track your spending and manage your finances.</p>
+        </div>
+        <button
+          onClick={handleRefresh}
+          disabled={populateDummyData.isLoading}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#9c6644] bg-[#f5efe7] rounded-md hover:bg-[#e8e1d9] transition-colors disabled:opacity-50"
+        >
+          <RefreshCw size={16} className={`${populateDummyData.isLoading ? 'animate-spin' : ''}`} />
+          {populateDummyData.isLoading ? 'Refreshing...' : 'Refresh Data'}
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-8">
+      <div className="grid grid-cols-1 gap-8 mb-12">
         <TransactionList />
       </div>
 
@@ -28,10 +128,14 @@ export default function DashboardPage() {
               <div className="stat-title">Total Balance</div>
               <DollarSign size={18} className="text-[#9c6644] opacity-70" />
             </div>
-            <div className="stat-value">$12,546.21</div>
-            <div className="stat-change positive">
-              <TrendingUp size={14} className="mr-1" />
-              <span>+2.5% from last month</span>
+            <div className="stat-value">${(totalIncome - totalSpending).toFixed(2)}</div>
+            <div className={`stat-change ${totalIncome - totalSpending >= 0 ? 'positive' : 'negative'}`}>
+              {totalIncome - totalSpending >= 0 ? (
+                <TrendingUp size={14} className="mr-1" />
+              ) : (
+                <TrendingDown size={14} className="mr-1" />
+              )}
+              <span>Current Balance</span>
             </div>
           </div>
         </div>
@@ -42,10 +146,10 @@ export default function DashboardPage() {
               <div className="stat-title">Monthly Income</div>
               <TrendingUp size={18} className="text-[#4d7c0f] opacity-70" />
             </div>
-            <div className="stat-value">$4,850.00</div>
+            <div className="stat-value">${totalIncome.toFixed(2)}</div>
             <div className="stat-change positive">
               <TrendingUp size={14} className="mr-1" />
-              <span>+5.2% from last month</span>
+              <span>Total Income</span>
             </div>
           </div>
         </div>
@@ -56,10 +160,10 @@ export default function DashboardPage() {
               <div className="stat-title">Monthly Expenses</div>
               <TrendingDown size={18} className="text-[#b91c1c] opacity-70" />
             </div>
-            <div className="stat-value">$3,248.67</div>
+            <div className="stat-value">${totalSpending.toFixed(2)}</div>
             <div className="stat-change negative">
               <TrendingDown size={14} className="mr-1" />
-              <span>-1.8% from last month</span>
+              <span>Total Expenses</span>
             </div>
           </div>
         </div>
@@ -67,8 +171,11 @@ export default function DashboardPage() {
 
       {/* Spending Chart */}
       <div className="dashboard-card mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-medium text-[#3a3027]">Spending Patterns</h2>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="text-lg font-medium text-[#3a3027]">Spending Patterns</h2>
+            <p className="text-sm text-gray-500">{timePeriodLabel}</p>
+          </div>
           <div className="flex bg-[#e8e1d9] rounded-md p-0.5">
             <button
               className={`px-3 py-1 text-sm rounded-md transition-colors ${
@@ -97,11 +204,38 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="chart-container">
-          {/* This would be a real chart in production */}
-          <div className="w-full h-full bg-[#f8f5f0] rounded-lg flex items-center justify-center border border-[#e6dfd5]">
-            <p className="text-[#3a3027] opacity-60">Spending Chart Visualization</p>
-          </div>
+        <div className="p-4">
+          {spendingByCategory.length === 0 ? (
+            <div className="text-center py-4 text-gray-500">
+              No spending data for this {activeTab.toLowerCase()} period
+            </div>
+          ) : (
+            <div className="grid gap-2">
+              {spendingByCategory.map(({ category, amount, percentage }) => (
+                <div key={category}>
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <div className="flex items-center min-w-0">
+                      <span className="font-medium text-[#3a3027] truncate">{category}</span>
+                      <span className="ml-2 text-[#3a3027] opacity-70">{percentage}%</span>
+                    </div>
+                    <span className="font-medium text-[#3a3027] ml-4">${amount.toFixed(2)}</span>
+                  </div>
+                  <div className="h-2 bg-[#e8e1d9] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#9c6644] rounded-full transition-all duration-500"
+                      style={{ width: `${percentage}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+              <div className="mt-4 pt-3 border-t border-[#e8e1d9]">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-[#3a3027]">Total {activeTab === 'monthly' ? 'Monthly' : activeTab === 'weekly' ? 'Weekly' : 'Daily'} Spending</span>
+                  <span className="text-lg font-semibold text-[#3a3027]">${totalSpending.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -120,14 +254,14 @@ export default function DashboardPage() {
               <div className="w-8 h-8 rounded-full bg-[#f0fdf4] flex items-center justify-center mr-3">
                 <Coffee size={16} className="text-[#4d7c0f]" />
               </div>
-              <span className="font-medium text-[#3a3027]">Coffee & Dining</span>
+              <span className="font-medium text-[#3a3027]">Food and Drink</span>
             </div>
-            <span className="text-sm font-medium text-[#3a3027]">$420/$500</span>
+            <span className="text-sm font-medium text-[#3a3027]">$67.05/$500</span>
           </div>
           <div className="budget-progress">
-            <div className="budget-progress-bar warning" style={{ width: "84%" }}></div>
+            <div className="budget-progress-bar good" style={{ width: "13.4%" }}></div>
           </div>
-          <p className="text-xs text-[#3a3027] opacity-60 mt-1">84% of monthly budget used</p>
+          <p className="text-xs text-[#3a3027] opacity-60 mt-1">13.4% of monthly budget used</p>
         </div>
 
         <div className="dashboard-card p-4">
@@ -138,12 +272,12 @@ export default function DashboardPage() {
               </div>
               <span className="font-medium text-[#3a3027]">Shopping</span>
             </div>
-            <span className="text-sm font-medium text-[#3a3027]">$310/$600</span>
+            <span className="text-sm font-medium text-[#3a3027]">$246.74/$600</span>
           </div>
           <div className="budget-progress">
-            <div className="budget-progress-bar good" style={{ width: "52%" }}></div>
+            <div className="budget-progress-bar good" style={{ width: "41.1%" }}></div>
           </div>
-          <p className="text-xs text-[#3a3027] opacity-60 mt-1">52% of monthly budget used</p>
+          <p className="text-xs text-[#3a3027] opacity-60 mt-1">41.1% of monthly budget used</p>
         </div>
 
         <div className="dashboard-card p-4">
@@ -154,12 +288,12 @@ export default function DashboardPage() {
               </div>
               <span className="font-medium text-[#3a3027]">Transportation</span>
             </div>
-            <span className="text-sm font-medium text-[#3a3027]">$280/$300</span>
+            <span className="text-sm font-medium text-[#3a3027]">$235.50/$300</span>
           </div>
           <div className="budget-progress">
-            <div className="budget-progress-bar danger" style={{ width: "93%" }}></div>
+            <div className="budget-progress-bar warning" style={{ width: "78.5%" }}></div>
           </div>
-          <p className="text-xs text-[#3a3027] opacity-60 mt-1">93% of monthly budget used</p>
+          <p className="text-xs text-[#3a3027] opacity-60 mt-1">78.5% of monthly budget used</p>
         </div>
       </div>
 
@@ -200,4 +334,3 @@ export default function DashboardPage() {
     </div>
   )
 }
-

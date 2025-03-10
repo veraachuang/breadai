@@ -166,13 +166,13 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-amber-600 text-white py-2 px-4 rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50"
+                className="w-full bg-[#9c6644] text-white py-3 px-4 rounded-xl hover:bg-[#8b5a3b] transition-colors disabled:opacity-50 font-medium"
               >
                 {isLoading ? "Creating account..." : "Create Account"}
               </button>
             </div>
             <div className="text-center pt-2">
-              <Link href="/" className="text-sm text-amber-600 hover:text-amber-700">
+              <Link href="/" className="text-[#9c6644] hover:text-[#8b5a3b] transition-colors">
                 Already have an account? Sign in
               </Link>
             </div>

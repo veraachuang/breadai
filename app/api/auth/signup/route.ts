@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import bcrypt from "bcrypt"
-import { prisma } from "@/server/db"
+import { db } from "@/server/db"
 import { Prisma } from "@prisma/client"
 
 export async function POST(req: Request) {
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
     // Ensure database connection
     try {
-      await prisma.$connect()
+      await db.$connect()
     } catch (error) {
       console.error("Failed to connect to database:", error)
       return new NextResponse(
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     try {
       // Check if username already exists
       console.log("Checking if username exists:", username)
-      const existingUser = await prisma.user.findUnique({
+      const existingUser = await db.user.findUnique({
         where: { username },
       })
 
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
 
       // Create user
       console.log("Creating user:", username)
-      const user = await prisma.user.create({
+      const user = await db.user.create({
         data: {
           username,
           password: hashedPassword,
@@ -115,7 +115,7 @@ export async function POST(req: Request) {
         }
       )
     } finally {
-      await prisma.$disconnect()
+      await db.$disconnect()
     }
   } catch (error) {
     console.error("Signup error:", error)

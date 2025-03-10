@@ -1,7 +1,7 @@
 import { initTRPC, TRPCError } from '@trpc/server';
 import type { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { prisma } from '@/server/db';
+import { db } from '@/server/db';
 import { authOptions } from '@/server/auth';
 import type { Session } from 'next-auth';
 
@@ -15,13 +15,24 @@ export async function createContext({ req, res }: CreateContextOptions) {
 
   return {
     session,
-    prisma,
+    prisma: db,
   };
 }
 
 type Context = Awaited<ReturnType<typeof createContext>>;
 
-const t = initTRPC.context<Context>().create();
+const t = initTRPC.context<Context>().create({
+  errorFormatter({ shape, error }) {
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        zodError:
+          error.cause instanceof Error ? error.cause.message : 'An error occurred',
+      },
+    };
+  },
+});
 
 export const createTRPCRouter = t.router;
 

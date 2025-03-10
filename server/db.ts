@@ -10,18 +10,21 @@ const prismaClientSingleton = () => {
   });
 };
 
-export const prisma = globalThis.prisma ?? prismaClientSingleton();
+const client = globalThis.prisma ?? prismaClientSingleton();
 
 if (process.env.NODE_ENV !== "production") {
-  globalThis.prisma = prisma;
+  globalThis.prisma = client;
 }
 
-// Ensure the database is connected
-prisma.$connect()
+// Export a single client that works with both adapter and queries
+export const db = client;
+
+// Connect to the database
+client.$connect()
   .then(() => {
     console.log("✅ Successfully connected to the database");
   })
   .catch((error) => {
     console.error("❌ Failed to connect to the database:", error);
-    process.exit(1); // Exit if we can't connect to the database
+    process.exit(1);
   }); 

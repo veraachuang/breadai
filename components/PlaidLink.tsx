@@ -104,7 +104,7 @@ export function PlaidLink() {
       <button
         onClick={handlePlaidLink}
         disabled={!isPlaidScriptLoaded || isLoading}
-        className="w-full bg-amber-600 text-white py-3 px-4 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50 font-medium"
+        className="w-full bg-[#9c6644] text-white py-3 px-4 rounded-xl hover:bg-[#8b5a3b] transition-colors disabled:opacity-50 font-medium"
       >
         {isLoading ? 'Connecting...' : 'Connect Your Bank'}
       </button>

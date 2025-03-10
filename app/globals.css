@@ -148,7 +148,7 @@ body {
   background-color: var(--primary);
   color: var(--primary-foreground);
   padding: 0.75rem 1rem;
-  border-radius: 6px;
+  border-radius: 0.75rem;
   font-weight: 500;
   width: 100%;
   text-align: center;
@@ -156,12 +156,16 @@ body {
 }
 
 .primary-button:hover {
-  background-color: #8a5a3c;
-  transform: translateY(-1px);
+  background-color: #8b5a3b;
 }
 
 .primary-button:active {
-  transform: translateY(0);
+  transform: translateY(1px);
+}
+
+.primary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .text-link {
@@ -174,7 +178,7 @@ body {
 }
 
 .text-link:hover {
-  color: #8a5a3c;
+  color: #8b5a3b;
   text-decoration: underline;
 }
 
@@ -221,7 +225,6 @@ body {
 .dashboard-sidebar {
   width: 250px;
   background-color: var(--card);
-  border-right: 1px solid var(--border);
   transition: width 0.3s ease;
 }
 

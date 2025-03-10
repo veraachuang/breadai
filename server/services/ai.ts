@@ -1,5 +1,5 @@
 import * as tf from '@tensorflow/tfjs';
-import { prisma } from '@/server/db';
+import { db } from '@/server/db';
 
 // Initialize the model (this would normally be loaded from a saved model)
 let model: tf.LayersModel;
@@ -39,14 +39,14 @@ export async function categorizeTransaction(transaction: {
 
 export async function suggestBudgetAdjustments(userId: string) {
   // Get user's transaction history
-  const transactions = await prisma.transaction.findMany({
+  const transactions = await db.transaction.findMany({
     where: { userId },
     orderBy: { date: 'desc' },
     take: 100
   });
 
   // Get current budgets
-  const budgets = await prisma.budget.findMany({
+  const budgets = await db.budget.findMany({
     where: { userId }
   });
 

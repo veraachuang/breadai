@@ -98,7 +98,7 @@ export default function LoginPage() {
               <button
                 onClick={handleLogin}
                 disabled={isLoading}
-                className="w-full bg-amber-600 text-white py-2 px-4 rounded-lg hover:bg-amber-700 transition-colors disabled:opacity-50"
+                className="w-full bg-[#9c6644] text-white py-3 px-4 rounded-xl hover:bg-[#8b5a3b] transition-colors disabled:opacity-50 font-medium"
               >
                 {isLoading ? "Signing in..." : "Sign In"}
               </button>
@@ -106,7 +106,7 @@ export default function LoginPage() {
             <div className="mt-4 text-center space-y-2">
               <Link
                 href="/signup"
-                className="text-amber-600 hover:text-amber-700 transition-colors block"
+                className="text-[#9c6644] hover:text-[#8b5a3b] transition-colors block"
               >
                 Create an account
               </Link>
