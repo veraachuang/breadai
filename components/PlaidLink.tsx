@@ -106,7 +106,7 @@ export default function PlaidLink({ onSuccess, onEvent, onExit }: PlaidLinkProps
       const { linkToken } = await createLinkToken.mutateAsync();
       setToken(linkToken);
       open();
-    } catch (error) {
+    } catch {
       setError('Failed to initialize Plaid Link');
       setIsLoading(false);
     }
