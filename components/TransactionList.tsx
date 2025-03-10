@@ -48,15 +48,6 @@ export default function TransactionList() {
     }
   }, [transactions]);
 
-  const handleLoadMore = () => {
-    setCurrentPage(prev => prev + 1);
-  };
-
-  const getCategoryStyle = (category: string[]) => {
-    const mainCategory = category[0] || 'Other';
-    return CATEGORY_COLORS[mainCategory] || { bg: 'bg-gray-100', text: 'text-gray-800' };
-  };
-
   if (isLoading) {
     return <LoadingSpinner />;
   }

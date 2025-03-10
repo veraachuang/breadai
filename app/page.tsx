@@ -8,7 +8,6 @@ import Link from "next/link"
 import { X } from "lucide-react"
 import { BreadAILogo } from "@/components/logo"
 import { signIn } from "next-auth/react"
-import { useSession } from "next-auth/react"
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,7 +41,7 @@ export default function LoginPage() {
       }
 
       router.push("/dashboard");
-    } catch (err) {
+    } catch (error) {
       setError("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);

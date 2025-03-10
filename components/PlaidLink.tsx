@@ -1,16 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Shield, Lock } from 'lucide-react';
 import { api } from '../app/_trpc/react';
 import { useSession } from 'next-auth/react';
-import { usePlaidLink, PlaidLinkOnSuccess, PlaidLinkOnEvent, PlaidLinkOnExit } from 'react-plaid-link';
+import { 
+  usePlaidLink, 
+  PlaidLinkOnSuccess, 
+  PlaidLinkOnEvent, 
+  PlaidLinkOnExit,
+  PlaidLinkOptions,
+  PlaidLinkError,
+  PlaidLinkOnEventMetadata,
+  PlaidLinkOnSuccessMetadata,
+  PlaidLinkOnExitMetadata
+} from 'react-plaid-link';
 
 declare global {
   interface Window {
     Plaid: {
-      create: (config: any) => void;
+      create: (config: PlaidLinkOptions) => void;
     };
   }
 }
@@ -25,6 +35,7 @@ export default function PlaidLink({ onSuccess, onEvent, onExit }: PlaidLinkProps
   const [isPlaidScriptLoaded, setIsPlaidScriptLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -45,26 +56,29 @@ export default function PlaidLink({ onSuccess, onEvent, onExit }: PlaidLinkProps
     }
   });
 
-  const config = {
-    token: undefined as string | undefined,
-    onSuccess: async (public_token: string, metadata: any) => {
-      console.log('Link success:', metadata);
-      if (onSuccess) {
-        onSuccess(public_token, metadata);
-      } else {
-        await exchangePublicToken.mutateAsync({ publicToken: public_token });
-      }
-    },
-    onEvent: (eventName: string, metadata: any) => {
-      console.log('Link event:', eventName, metadata);
-      if (onEvent) onEvent(eventName, metadata);
-    },
-    onExit: (err: any, metadata: any) => {
-      console.log('Link exit:', err, metadata);
-      setIsLoading(false);
-      if (onExit) onExit(err, metadata);
-    },
-  };
+  const config = useMemo(
+    () => ({
+      token,
+      onSuccess: async (public_token: string, metadata: PlaidLinkOnSuccessMetadata) => {
+        console.log('Link success:', metadata);
+        if (onSuccess) {
+          onSuccess(public_token, metadata);
+        } else {
+          await exchangePublicToken.mutateAsync({ publicToken: public_token });
+        }
+      },
+      onEvent: (eventName: string, metadata: PlaidLinkOnEventMetadata) => {
+        console.log('Link event:', eventName, metadata);
+        if (onEvent) onEvent(eventName, metadata);
+      },
+      onExit: (error: PlaidLinkError | null, metadata: PlaidLinkOnExitMetadata) => {
+        console.log('Link exit:', error, metadata);
+        setIsLoading(false);
+        if (onExit) onExit(error, metadata);
+      },
+    }),
+    [token, onSuccess, onEvent, onExit, exchangePublicToken]
+  );
 
   const { open } = usePlaidLink(config);
 
@@ -90,9 +104,9 @@ export default function PlaidLink({ onSuccess, onEvent, onExit }: PlaidLinkProps
       setIsLoading(true);
       setError(null);
       const { linkToken } = await createLinkToken.mutateAsync();
-      config.token = linkToken;
+      setToken(linkToken);
       open();
-    } catch (err) {
+    } catch (error) {
       setError('Failed to initialize Plaid Link');
       setIsLoading(false);
     }
@@ -126,4 +140,5 @@ export default function PlaidLink({ onSuccess, onEvent, onExit }: PlaidLinkProps
       </button>
     </div>
   );
+} 
 } 
