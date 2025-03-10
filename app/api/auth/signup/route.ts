@@ -106,7 +106,8 @@ export async function POST(req: Request) {
       return new NextResponse(
         JSON.stringify({ 
           error: "Database error. Please try again.",
-          details: process.env.NODE_ENV === "development" ? error.message : undefined,
+          details: process.env.NODE_ENV === "development" ? 
+            (error instanceof Error ? error.message : String(error)) : undefined,
           code: error instanceof Prisma.PrismaClientKnownRequestError ? error.code : undefined,
         }),
         {
@@ -122,7 +123,8 @@ export async function POST(req: Request) {
     return new NextResponse(
       JSON.stringify({ 
         error: "Failed to create user. Please try again.",
-        details: process.env.NODE_ENV === "development" ? error.message : undefined,
+        details: process.env.NODE_ENV === "development" ? 
+          (error instanceof Error ? error.message : String(error)) : undefined,
       }),
       {
         status: 500,
