@@ -141,4 +141,3 @@ export default function PlaidLink({ onSuccess, onEvent, onExit }: PlaidLinkProps
     </div>
   );
 } 
-} 
