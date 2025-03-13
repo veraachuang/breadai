@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation"
 import ProfileMenu from "@/components/ProfileMenu"
 import Link from "next/link"
+import Image from 'next/image'
 
 export function Header() {
   const pathname = usePathname()
@@ -15,8 +16,15 @@ export function Header() {
       <div className="container mx-auto pl-2 pr-4 h-14 flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center group">
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-[#9c6644] rounded-sm flex items-center justify-center mr-2 group-hover:bg-[#8b5a3b] transition-colors">
-              <span className="text-white text-lg">🍞</span>
+            <div className="w-8 h-8 rounded-sm flex items-center justify-center mr-2 transition-colors">
+              <Image 
+                src="/images/bread.png" 
+                alt="Bread logo" 
+                width={20}
+                height={20}
+                className="object-contain"
+                priority
+              />
             </div>
             <span className="text-xl font-bold text-[#9c6644] group-hover:text-[#8b5a3b] transition-colors">Bread</span>
             <span className="text-xl font-bold text-[#d4a373] group-hover:text-[#c49363] transition-colors">AI</span>

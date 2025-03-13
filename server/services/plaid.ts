@@ -4,12 +4,16 @@ if (!process.env.PLAID_CLIENT_ID || !process.env.PLAID_SECRET) {
   throw new Error("Missing Plaid credentials in .env file");
 }
 
+const plaidEnv = process.env.PLAID_ENV || "sandbox";
+console.log("Initializing Plaid client with environment:", plaidEnv);
+
 const configuration = new Configuration({
-  basePath: PlaidEnvironments[process.env.PLAID_ENV as keyof typeof PlaidEnvironments || "sandbox"],
+  basePath: PlaidEnvironments[plaidEnv as keyof typeof PlaidEnvironments],
   baseOptions: {
     headers: {
       'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID,
       'PLAID-SECRET': process.env.PLAID_SECRET,
+      'Content-Type': 'application/json',
     },
   },
 });

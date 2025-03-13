@@ -8,27 +8,37 @@ export const plaidRouter = createTRPCRouter({
   createLinkToken: protectedProcedure
     .mutation(async ({ ctx }) => {
       try {
+        console.log("Creating link token for user:", ctx.session.user.id);
+        
         const request = {
-          user: {
-            client_user_id: ctx.session.user.id,
-          },
+          user: { client_user_id: ctx.session.user.id },
           client_name: "BreadAI",
           products: [Products.Auth, Products.Transactions],
           country_codes: [CountryCode.Us],
           language: "en",
-        }
+          webhook: process.env.PLAID_WEBHOOK_URL,
+        };
 
-        const createTokenResponse = await plaidClient.linkTokenCreate(request)
-        return {
-          linkToken: createTokenResponse.data.link_token
+        console.log("Link token request:", JSON.stringify(request, null, 2));
+        const createTokenResponse = await plaidClient.linkTokenCreate(request);
+        console.log("Link token created successfully");
+        
+        return { linkToken: createTokenResponse.data.link_token };
+      } catch (error: any) {
+        console.error("Error creating link token:", error);
+        if (error.response?.data) {
+          console.error("Plaid API error details:", {
+            error_type: error.response.data.error_type,
+            error_code: error.response.data.error_code,
+            error_message: error.response.data.error_message,
+            display_message: error.response.data.display_message,
+          });
         }
-      } catch (error) {
-        console.error("Error creating link token:", error)
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to create Plaid link token",
+          message: error.response?.data?.error_message || "Failed to create Plaid link token",
           cause: error
-        })
+        });
       }
     }),
 
